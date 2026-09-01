@@ -14,7 +14,16 @@
     "tracking",
     "progress"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "author": "Jim Ezesinachi",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jimezesinachi/obsidian-tv-progress-sync.git"
+  },
+  "homepage": "https://github.com/jimezesinachi/obsidian-tv-progress-sync#readme",
+  "bugs": {
+    "url": "https://github.com/jimezesinachi/obsidian-tv-progress-sync/issues"
+  },
   "devDependencies": {
     "@types/node": "latest",
     "esbuild": "latest",

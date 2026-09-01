@@ -4,6 +4,6 @@
   "version": "1.0.0",
   "minAppVersion": "1.4.0",
   "description": "Keeps TV series, season, and episode Seen properties synchronized.",
-  "author": "Local vault plugin",
+  "author": "Jim Ezesinachi",
   "isDesktopOnly": false
 }

@@ -76,3 +76,7 @@ npm test
 4. Enable **TV Progress Sync** under Obsidian's community plugins.
 
 The command palette includes **TV Progress Sync: Recalculate all TV progress** for repairing derived progress values after bulk edits.
+
+## License
+
+[MIT](LICENSE) © 2026 Jim Ezesinachi
