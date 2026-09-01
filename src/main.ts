@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFile } from "obsidian";
+import { Notice, Plugin, TFile, TFolder, Vault } from "obsidian";
 
 type TVRecordType = "tv-series" | "tv-season" | "tv-episode";
 type Frontmatter = Record<string, unknown>;
@@ -53,7 +53,7 @@ export default class TVProgressSync extends Plugin {
   }
 
   private snapshotSeenState(): void {
-    for (const file of this.app.vault.getMarkdownFiles()) {
+    for (const file of this.tvMarkdownFiles()) {
       if (!this.isTVFile(file) || !this.recordType(file)) continue;
       this.seenState.set(file.path, this.frontmatter(file).seen === true);
     }
@@ -87,15 +87,27 @@ export default class TVProgressSync extends Plugin {
   }
 
   private filesOfType(type: TVRecordType): TFile[] {
-    return this.app.vault.getMarkdownFiles().filter((file) => {
+    return this.tvMarkdownFiles().filter((file) => {
       return this.isTVFile(file) && this.recordType(file) === type;
     });
   }
 
+  private tvMarkdownFiles(): TFile[] {
+    const root = this.app.vault.getAbstractFileByPath(TV_ROOT.slice(0, -1));
+    if (!(root instanceof TFolder)) return [];
+
+    const files: TFile[] = [];
+    Vault.recurseChildren(root, (entry) => {
+      if (entry instanceof TFile && entry.extension === "md") files.push(entry);
+    });
+    return files;
+  }
+
   private resolvePropertyLink(file: TFile, rawValue: unknown): TFile | null {
-    const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
-    if (!value) return null;
-    const text = String(value);
+    let value: unknown = rawValue;
+    if (Array.isArray(rawValue)) value = (rawValue as unknown[])[0];
+    if (typeof value !== "string" || !value) return null;
+    const text = value;
     const match = text.match(/^\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]$/);
     const linkPath = match ? match[1] : text;
     return this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
@@ -127,8 +139,12 @@ export default class TVProgressSync extends Plugin {
     if (Object.prototype.hasOwnProperty.call(changes, "seen")) {
       this.seenState.set(file.path, changes.seen === true);
     }
-    await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-      for (const [key, value] of Object.entries(changes)) frontmatter[key] = value;
+    await this.app.fileManager.processFrontMatter(file, (frontmatter: unknown) => {
+      if (!frontmatter || typeof frontmatter !== "object" || Array.isArray(frontmatter)) {
+        throw new TypeError(`Invalid frontmatter in ${file.path}`);
+      }
+      const properties = frontmatter as Record<string, unknown>;
+      for (const [key, value] of Object.entries(changes)) properties[key] = value;
     });
   }
 

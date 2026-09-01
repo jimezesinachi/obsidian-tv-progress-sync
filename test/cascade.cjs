@@ -6,19 +6,40 @@ class Plugin {
   constructor(app) { this.app = app; }
 }
 class Notice {}
+class TFile {
+  constructor(path) {
+    this.path = path;
+    this.extension = "md";
+  }
+}
+class TFolder {
+  constructor(path, children = []) {
+    this.path = path;
+    this.children = children;
+  }
+}
+class Vault {
+  static recurseChildren(root, callback) {
+    for (const child of root.children) {
+      callback(child);
+      if (child instanceof TFolder) Vault.recurseChildren(child, callback);
+    }
+  }
+}
 Module._load = function (request, parent, isMain) {
-  if (request === "obsidian") return { Plugin, Notice };
+  if (request === "obsidian") return { Plugin, Notice, TFile, TFolder, Vault };
   return originalLoad.call(this, request, parent, isMain);
 };
 
 const TVProgressSync = require("../main.js").default;
-const file = (path) => ({ path, extension: "md" });
+const file = (path) => new TFile(path);
 const series = file("Film & TV/TV/TV DB/Test Series.md");
 const season1 = file("Film & TV/TV/Seasons/Test Series/Season 01.md");
 const season2 = file("Film & TV/TV/Seasons/Test Series/Season 02.md");
 const episode1 = file("Film & TV/TV/Episodes/Test Series/Season 01/S01E01.md");
 const episode2 = file("Film & TV/TV/Episodes/Test Series/Season 01/S01E02.md");
 const files = [series, season1, season2, episode1, episode2];
+const tvRoot = new TFolder("Film & TV/TV", files);
 const byPath = new Map(files.map((entry) => [entry.path, entry]));
 const frontmatter = new Map([
   [series.path, { type: "tv-series", seen: false, season_count: 2, seasons_seen: 0 }],
@@ -28,7 +49,9 @@ const frontmatter = new Map([
   [episode2.path, { type: "tv-episode", seen: false, season: "[[Film & TV/TV/Seasons/Test Series/Season 01|Season 01]]", counts_toward_completion: true }]
 ]);
 const app = {
-  vault: { getMarkdownFiles: () => files },
+  vault: {
+    getAbstractFileByPath: (path) => path === tvRoot.path ? tvRoot : null
+  },
   metadataCache: {
     getFileCache: (entry) => ({ frontmatter: frontmatter.get(entry.path) }),
     getFirstLinkpathDest: (linkPath) => byPath.get(`${linkPath}.md`) || null
