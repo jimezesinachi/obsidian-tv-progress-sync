@@ -1,0 +1,24 @@
+{
+  "name": "obsidian-tv-progress-sync",
+  "version": "1.0.0",
+  "description": "An Obsidian plugin that synchronizes Seen state across TV series, seasons, and episodes.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+    "test": "npm run build && node test/cascade.cjs"
+  },
+  "keywords": [
+    "obsidian",
+    "television",
+    "tracking",
+    "progress"
+  ],
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "latest",
+    "esbuild": "latest",
+    "obsidian": "latest",
+    "typescript": "latest"
+  }
+}
